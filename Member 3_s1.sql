@@ -31,7 +31,7 @@ BEGIN CATCH
     ROLLBACK TRANSACTION;
 END CATCH;
 
---What happened? inserted a new student successfully Then  tried to update that student’s Balance to -1000, which violates the CHECK constraint (Balance must be >= 0)This causes an error.
+--What happened? inserted a new student successfully Then  tried to update that studentï¿½s Balance to -1000, which violates the CHECK constraint (Balance must be >= 0)This causes an error.
 
 --The error is caught in the CATCH block.
 
@@ -166,7 +166,7 @@ WHERE blocking_session_id <> 0;
 --TASK4
  --#SQL Server Techniques to Solve Concurrency Issues
 --**Concurrency issues happen when multiple users or processes try to read or modify the same data at the same time. This can lead to problems like:
---Dirty reads: Reading uncommitted (and possibly rolled-back) changes,Non-repeatable reads: Data changes between reads within the same transaction,Phantom reads: New rows appear or disappear during a transaction,Lost updates: Two transactions overwrite each other’s changes,Deadlocks: Two or more transactions block each other forever.
+--Dirty reads: Reading uncommitted (and possibly rolled-back) changes,Non-repeatable reads: Data changes between reads within the same transaction,Phantom reads: New rows appear or disappear during a transaction,Lost updates: Two transactions overwrite each otherï¿½s changes,Deadlocks: Two or more transactions block each other forever.
 --we implement first solution isolation levels and seconed solution locking but not direct we could try shared locks? ,Row Versioning third solution implement by snapshot isolation level,Optimistic vs Pessimistic Concurrency 
 
 --row level 
@@ -175,7 +175,7 @@ WHERE blocking_session_id <> 0;
 
 	--We lock the rows while reading so no one else can modify them during the read.
 
-	--No edits allowed in this transaction — read-only with locking.
+	--No edits allowed in this transaction ï¿½ read-only with locking.
 
 --student see courses with row-level shared locks:
 -- Set isolation level to READ COMMITTED (default, uses shared locks)
@@ -223,6 +223,7 @@ COMMIT TRANSACTION;
 
 ALTER TABLE CourseOfferings
 ADD Price DECIMAL(10, 2) NOT NULL DEFAULT 0;
+GO
 
 CREATE TRIGGER trg_PayForAllActiveCourses
 ON Enrollments
