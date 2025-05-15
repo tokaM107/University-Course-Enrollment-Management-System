@@ -30,17 +30,20 @@ SELECT Balance FROM Students WHERE StudentID = 1002;
 
 -- Session 2
 SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
-SELECT Balance FROM Students WHERE StudentID = 1001;
+SELECT Balance FROM Students WHERE StudentID = 1000;
 
 -- Session 2 can see the uncommitted updated balance.
+
+
 
 --#(REPEATABLE READ)
 -- Session 2
 -- Attempt to update the balance
-UPDATE Students SET Balance = Balance + 300 WHERE StudentID = 1001;
+UPDATE Students SET Balance = Balance - 300 WHERE StudentID = 1000;
 
 -- Session 2 will be blocked until Session 1 completes (commits or rolls back).
 
+SELECT Balance FROM Students WHERE StudentID = 1000;
 
 --(SERIZABLE)
 

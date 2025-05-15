@@ -136,33 +136,21 @@ SELECT GPA FROM Students WHERE StudentID = 1000;
 --(READ COMMITTED (Default)_#1
 -- Session 1
 BEGIN TRANSACTION;
-UPDATE Students SET Balance = Balance - 700 WHERE StudentID = 1002;
+UPDATE Students SET Balance = Balance + 700 WHERE StudentID = 1000;
 -- No COMMIT or ROLLBACK yet, transaction is still open.
 ROLLBACK TRANSACTION;
 
 --#(READ UNCOMMITTED)
 -- Session 1
+SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
+
+SELECT Balance FROM Students WHERE StudentID = 1000;
 BEGIN TRANSACTION;
-UPDATE Students SET Balance = Balance + 1000 WHERE StudentID = 1001;
+UPDATE Students SET Balance = Balance - 500 WHERE StudentID = 1000;
 
 -- No COMMIT or ROLLBACK yet, transaction is still open.
 
 -- Rollback changes in Session 1:
-ROLLBACK TRANSACTION;
-
---( REPEATABLE READ)
--- Session 1
-SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;
-BEGIN TRANSACTION;
-SELECT Balance FROM Students WHERE StudentID = 1000;
-
--- No other session can update or delete StudentID = 1000 until this transaction is committed or rolled back.
-
--- Session 2
-UPDATE Students SET Balance = Balance - 300 WHERE StudentID = 1000;
-
--- Session 2 will be blocked until Session 1 completes.
--- Commit or Rollback in Session 1:
 ROLLBACK TRANSACTION;
 
 --#(REPEATABLE READ)
@@ -307,33 +295,32 @@ END
 COMMIT TRANSACTION;
 ------------------------------------------------------------------------------------
 --Concurrency Control for Instructor Salary Updates secure  with optimistic concurrency using ROWVERSION
---  Ensure RowVer column exists (run only once)
+-- Step 1: Ensure RowVer column exists (run only once)
 IF COL_LENGTH('Instructors', 'RowVer') IS NULL
 BEGIN
     ALTER TABLE Instructors
     ADD RowVer ROWVERSION;
+END
+GO
 
--- Simulated current user for testing 
-
--- Full logic for salary update with optimistic concurrency and user authorization
+-- Step 2: Simulated current user and salary update with optimistic concurrency
 DECLARE @InstructorID INT = 2000;
 DECLARE @OldRowVer BINARY(8);
-DECLARE @UserName NVARCHAR(100) = 'admin1';  -- simulate admin login
+DECLARE @UserName NVARCHAR(100) = 'admin1';  -- Simulate login
 
--- Only allow certain users to perform this update
-IF @UserName IN ('admin1', 'hr_manager')  -- Replace with your actual admin usernames
+-- Only allow certain users to perform the update
+IF @UserName IN ('admin1', 'hr_manager')
 BEGIN
-    -- Step 1: Capture the current RowVersion
+    -- Capture current RowVersion
     SELECT @OldRowVer = RowVer
     FROM Instructors
     WHERE InstructorID = @InstructorID;
 
-    -- Step 2: Attempt optimistic locking update
+    -- Perform the update if RowVersion matches
     UPDATE Instructors
     SET Salary = Salary + 1000
     WHERE InstructorID = @InstructorID AND RowVer = @OldRowVer;
 
-    -- Step 3: Check if update was successful
     IF @@ROWCOUNT = 0
         PRINT 'Salary update failed due to concurrent modification.';
     ELSE
