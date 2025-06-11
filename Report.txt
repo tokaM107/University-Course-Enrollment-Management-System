@@ -1,0 +1,4 @@
+## 📄 Project Report
+You can view the full report as a PDF directly in your browser:
+
+[📥 View PDF Report](https://raw.githubusercontent.com/tokaM107/University-Course-Enrollment-Management-System/main/Report.pdf)
