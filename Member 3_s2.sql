@@ -25,7 +25,8 @@ SELECT GPA FROM Students WHERE StudentID = 1000;
 -- No COMMIT or ROLLBACK yet, transaction is still open.
 
 -- Session 2
-SELECT Balance FROM Students WHERE StudentID = 1002;
+SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
+SELECT Balance FROM Students WHERE StudentID = 1000;
 --#(READ UNCOMMITTED)
 
 -- Session 2

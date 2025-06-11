@@ -1,59 +1,77 @@
 USE UniversityCourseSystem;
 
 --Stored Procedure for Student Enrollment
-CREATE PROCEDURE sp_EnrollStudent
-    @StudentID INT,
-    @OfferingID INT 
+CREATE PROCEDURE sp_CreateAndEnrollStudent
+    @FirstName NVARCHAR(50),
+    @LastName NVARCHAR(50),
+    @InitialBalance DECIMAL(10, 2),
+    @OfferingID INT
 AS
 BEGIN
     BEGIN TRY
         BEGIN TRANSACTION;
 
-        -- Check available seats
-        DECLARE @AvailableSeats INT;
+        -- Insert new student with auto-incremented StudentID
+        INSERT INTO Students (FirstName, LastName, Balance)
+        VALUES (@FirstName, @LastName, @InitialBalance);
 
-        SELECT @AvailableSeats = MaxCapacity - CurrentEnrollment
+        -- Get the newly created StudentID
+        DECLARE @NewStudentID INT;
+        SET @NewStudentID = SCOPE_IDENTITY();
+
+        -- Check available seats
+        DECLARE @MaxCapacity INT;
+        DECLARE @CurrentEnrollment INT;
+        SELECT @MaxCapacity = MaxCapacity, @CurrentEnrollment = CurrentEnrollment
         FROM CourseOfferings
         WHERE OfferingID = @OfferingID;
 
-        IF @AvailableSeats IS NULL
+        IF @MaxCapacity IS NULL
         BEGIN
             RAISERROR('Invalid OfferingID. Course offering does not exist.', 16, 1);
+            ROLLBACK TRANSACTION;
             RETURN;
         END
 
-        IF @AvailableSeats <= 0
+        IF (@MaxCapacity - @CurrentEnrollment) <= 0
         BEGIN
             RAISERROR('No available seats for this course offering.', 16, 1);
+            ROLLBACK TRANSACTION;
             RETURN;
         END
 
-        -- Check if the student is already enrolled
+        -- Check for duplicate enrollment (though new student won't have prior enrollments)
         IF EXISTS (
             SELECT 1
             FROM Enrollments
-            WHERE StudentID = @StudentID AND OfferingID = @OfferingID
+            WHERE StudentID = @NewStudentID AND OfferingID = @OfferingID
         )
         BEGIN
             RAISERROR('Student is already enrolled in this course offering.', 16, 1);
+            ROLLBACK TRANSACTION;
             RETURN;
         END
 
-        -- Create enrollment
+        -- Enroll the new student
         INSERT INTO Enrollments (StudentID, OfferingID, EnrollmentDate, Status)
-        VALUES (@StudentID, @OfferingID, GETDATE(), 'Active');
+        VALUES (@NewStudentID, @OfferingID, GETDATE(), 'Active');
 
-        -- Update current enrollment count
+        -- Update CurrentEnrollment
         UPDATE CourseOfferings
         SET CurrentEnrollment = CurrentEnrollment + 1
         WHERE OfferingID = @OfferingID;
 
+        -- Update MaxCapacity (example: increment by 1 for each new enrollment, adjust as needed)
+        UPDATE CourseOfferings
+        SET MaxCapacity = MaxCapacity + 1
+        WHERE OfferingID = @OfferingID;
+
         COMMIT TRANSACTION;
-        PRINT 'Enrollment successful!';
+        PRINT 'Student created and enrolled successfully! New StudentID: ' + CAST(@NewStudentID AS NVARCHAR(10));
     END TRY
     BEGIN CATCH
         ROLLBACK TRANSACTION;
-        PRINT 'Enrollment failed: ' + ERROR_MESSAGE();
+        PRINT 'Operation failed: ' + ERROR_MESSAGE();
     END CATCH
 END;
 GO
@@ -64,7 +82,270 @@ UPDATE CourseOfferings SET CurrentEnrollment = MaxCapacity WHERE OfferingID = 40
 EXEC sp_EnrollStudent @StudentID = 1000, @OfferingID = 4001; -- No seats available
 EXEC sp_EnrollStudent @StudentID = 1000, @OfferingID = 9999; -- Invalid OfferingID
 
+ALTER PROCEDURE sp_CreateAndEnrollStudent
+    @FirstName NVARCHAR(50),
+    @LastName NVARCHAR(50),
+    @InitialBalance DECIMAL(10, 2),
+    @OfferingID INT
+AS
+BEGIN
+    BEGIN TRY
+        BEGIN TRANSACTION;
 
+        -- Insert new student with auto-incremented StudentID
+        INSERT INTO Students (FirstName, LastName, Balance)
+        VALUES (@FirstName, @LastName, @InitialBalance);
+
+        -- Get the newly created StudentID
+        DECLARE @NewStudentID INT;
+        SET @NewStudentID = SCOPE_IDENTITY();
+
+        -- Check available seats
+        DECLARE @MaxCapacity INT;
+        DECLARE @CurrentEnrollment INT;
+        SELECT @MaxCapacity = MaxCapacity, @CurrentEnrollment = CurrentEnrollment
+        FROM CourseOfferings
+        WHERE OfferingID = @OfferingID;
+
+        IF @MaxCapacity IS NULL
+        BEGIN
+            RAISERROR('Invalid OfferingID. Course offering does not exist.', 16, 1);
+            ROLLBACK TRANSACTION;
+            RETURN;
+        END
+
+        IF (@MaxCapacity - @CurrentEnrollment) <= 0
+        BEGIN
+            RAISERROR('No available seats for this course offering.', 16, 1);
+            ROLLBACK TRANSACTION;
+            RETURN;
+        END
+
+        -- Check for duplicate enrollment (though new student won't have prior enrollments)
+        IF EXISTS (
+            SELECT 1
+            FROM Enrollments
+            WHERE StudentID = @NewStudentID AND OfferingID = @OfferingID
+        )
+        BEGIN
+            RAISERROR('Student is already enrolled in this course offering.', 16, 1);
+            ROLLBACK TRANSACTION;
+            RETURN;
+        END
+
+        -- Enroll the new student
+        INSERT INTO Enrollments (StudentID, OfferingID, EnrollmentDate, Status)
+        VALUES (@NewStudentID, @OfferingID, GETDATE(), 'Active');
+
+        -- Update CurrentEnrollment
+        UPDATE CourseOfferings
+        SET CurrentEnrollment = CurrentEnrollment + 1
+        WHERE OfferingID = @OfferingID;
+
+        -- Update MaxCapacity (example: increment by 1 for each new enrollment, adjust as needed)
+        UPDATE CourseOfferings
+        SET MaxCapacity = MaxCapacity + 1
+        WHERE OfferingID = @OfferingID;
+
+        COMMIT TRANSACTION;
+        -- Use RAISERROR for informational message (severity 10)
+        RAISERROR('Student created and enrolled successfully! New StudentID: %d', 10, 1, @NewStudentID);
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION;
+        DECLARE @ErrorMessage NVARCHAR(4000) = ERROR_MESSAGE();
+        RAISERROR('Operation failed: %s', 16, 1, @ErrorMessage);
+    END CATCH
+END;
+GO
+
+ALTER PROCEDURE sp_CreateAndEnrollStudent
+    @FirstName NVARCHAR(50),
+    @LastName NVARCHAR(50),
+    @InitialBalance DECIMAL(10, 2),
+    @OfferingID INT
+AS
+BEGIN
+    BEGIN TRY
+        BEGIN TRANSACTION;
+
+        -- Insert new student with auto-incremented StudentID
+        INSERT INTO Students (FirstName, LastName, Balance)
+        VALUES (@FirstName, @LastName, @InitialBalance);
+
+        -- Get the newly created StudentID
+        DECLARE @NewStudentID INT;
+        SET @NewStudentID = SCOPE_IDENTITY();
+
+        -- Check available seats
+        DECLARE @MaxCapacity INT;
+        DECLARE @CurrentEnrollment INT;
+        SELECT @MaxCapacity = MaxCapacity, @CurrentEnrollment = CurrentEnrollment
+        FROM CourseOfferings
+        WHERE OfferingID = @OfferingID;
+
+        IF @MaxCapacity IS NULL
+        BEGIN
+            RAISERROR('Invalid OfferingID. Course offering does not exist.', 16, 1);
+            ROLLBACK TRANSACTION;
+            RETURN;
+        END
+
+        IF (@MaxCapacity - @CurrentEnrollment) <= 0
+        BEGIN
+            RAISERROR('No available seats for this course offering.', 16, 1);
+            ROLLBACK TRANSACTION;
+            RETURN;
+        END
+
+        -- Check for duplicate enrollment (though new student won't have prior enrollments)
+        IF EXISTS (
+            SELECT 1
+            FROM Enrollments
+            WHERE StudentID = @NewStudentID AND OfferingID = @OfferingID
+        )
+        BEGIN
+            RAISERROR('Student is already enrolled in this course offering.', 16, 1);
+            ROLLBACK TRANSACTION;
+            RETURN;
+        END
+
+        -- Enroll the new student
+        INSERT INTO Enrollments (StudentID, OfferingID, EnrollmentDate, Status)
+        VALUES (@NewStudentID, @OfferingID, GETDATE(), 'Active');
+
+        -- Update CurrentEnrollment
+        UPDATE CourseOfferings
+        SET CurrentEnrollment = CurrentEnrollment + 1
+        WHERE OfferingID = @OfferingID;
+
+        -- Update MaxCapacity (example: increment by 1 for each new enrollment, adjust as needed)
+        UPDATE CourseOfferings
+        SET MaxCapacity = MaxCapacity + 1
+        WHERE OfferingID = @OfferingID;
+
+        COMMIT TRANSACTION;
+        RAISERROR('Student created and enrolled successfully! New StudentID: %d', 10, 1, @NewStudentID);
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION;
+        DECLARE @ErrorMessage NVARCHAR(4000) = ERROR_MESSAGE();
+        RAISERROR('Operation failed: %s', 16, 1, @ErrorMessage);
+    END CATCH
+END;
+GO
+
+ALTER PROCEDURE sp_CreateAndEnrollStudent
+    @FirstName NVARCHAR(50),
+    @LastName NVARCHAR(50),
+    @InitialBalance DECIMAL(10, 2),
+    @OfferingID INT
+AS
+BEGIN
+    BEGIN TRY
+        BEGIN TRANSACTION;
+
+        -- Insert new student with auto-incremented StudentID
+        INSERT INTO Students (FirstName, LastName, Balance)
+        VALUES (@FirstName, @LastName, @InitialBalance);
+
+        -- Get the newly created StudentID
+        DECLARE @NewStudentID INT;
+        SET @NewStudentID = SCOPE_IDENTITY();
+
+        -- Check available seats and fetch Price
+        DECLARE @MaxCapacity INT;
+        DECLARE @CurrentEnrollment INT;
+        DECLARE @Price DECIMAL(10, 2);
+        SELECT @MaxCapacity = MaxCapacity, @CurrentEnrollment = CurrentEnrollment, @Price = Price
+        FROM CourseOfferings
+        WHERE OfferingID = @OfferingID;
+
+        IF @MaxCapacity IS NULL
+        BEGIN
+            RAISERROR('Invalid OfferingID. Course offering does not exist.', 16, 1);
+            ROLLBACK TRANSACTION;
+            RETURN;
+        END
+
+        IF (@MaxCapacity - @CurrentEnrollment) <= 0
+        BEGIN
+            RAISERROR('No available seats for this course offering.', 16, 1);
+            ROLLBACK TRANSACTION;
+            RETURN;
+        END
+
+        -- Check if student has sufficient balance
+        IF @InitialBalance < @Price
+        BEGIN
+            RAISERROR('Insufficient balance to cover course fees.', 16, 1);
+            ROLLBACK TRANSACTION;
+            RETURN;
+        END
+
+        -- Check for duplicate enrollment
+        IF EXISTS (
+            SELECT 1
+            FROM Enrollments
+            WHERE StudentID = @NewStudentID AND OfferingID = @OfferingID
+        )
+        BEGIN
+            RAISERROR('Student is already enrolled in this course offering.', 16, 1);
+            ROLLBACK TRANSACTION;
+            RETURN;
+        END
+
+        -- Update student's balance
+        UPDATE Students
+        SET Balance = Balance - @Price
+        WHERE StudentID = @NewStudentID;
+
+        -- Enroll the new student
+        INSERT INTO Enrollments (StudentID, OfferingID, EnrollmentDate, Status)
+        VALUES (@NewStudentID, @OfferingID, GETDATE(), 'Active');
+
+        -- Update CurrentEnrollment
+        UPDATE CourseOfferings
+        SET CurrentEnrollment = CurrentEnrollment + 1
+        WHERE OfferingID = @OfferingID;
+
+        -- Update MaxCapacity (adjust logic as needed)
+        UPDATE CourseOfferings
+        SET MaxCapacity = MaxCapacity + 1
+        WHERE OfferingID = @OfferingID;
+
+        COMMIT TRANSACTION;
+        RAISERROR('Student created and enrolled successfully! New StudentID: %d', 10, 1, @NewStudentID);
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION;
+        DECLARE @ErrorMessage NVARCHAR(4000) = ERROR_MESSAGE();
+        RAISERROR('Operation failed: %s', 16, 1, @ErrorMessage);
+    END CATCH
+END;
+GO
+
+CREATE OR ALTER VIEW vw_StudentProgress
+AS
+SELECT 
+    s.StudentID,
+    s.FirstName,
+    s.LastName,
+    COUNT(e.EnrollmentID) AS TotalCourses,
+    AVG(CASE WHEN e.Grade IS NOT NULL THEN e.Grade ELSE 0 END) AS AverageGrade,
+    -- Simplified GPA calculation (adjust as per your grading scale)
+    AVG(CASE 
+        WHEN e.Grade >= 90 THEN 4.0
+        WHEN e.Grade >= 80 THEN 3.0
+        WHEN e.Grade >= 70 THEN 2.0
+        WHEN e.Grade >= 60 THEN 1.0
+        ELSE 0.0
+    END) AS GPA
+FROM Students s
+LEFT JOIN Enrollments e ON s.StudentID = e.StudentID
+GROUP BY s.StudentID, s.FirstName, s.LastName;
+GO
+SELECT * FROM Students ORDER BY StudentID DESC;
 
 ---------------------------------------------------------------------------------------------------------------------
 --Task1: Simulate Transactions Using BEGIN TRANSACTION, SAVEPOINT, COMMIT, and ROLLBACK
@@ -431,3 +712,11 @@ WHERE EnrollmentID = 5000;  --it was Completed
 SELECT StudentID, Balance
 FROM Students
 WHERE StudentID = (SELECT StudentID FROM Enrollments WHERE EnrollmentID = 5000); --done
+UPDATE CourseOfferings 
+SET Price = 500.00;
+
+SELECT * FROM CourseOfferings;
+SELECT * FROM Students;
+SELECT * FROM Enrollments;
+SELECT * FROM vw_StudentProgress;
+EXEC sp_EnrollStudent 1004, 4004;
