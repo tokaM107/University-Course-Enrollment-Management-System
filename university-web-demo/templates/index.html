@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>University Course System</title>
+    <script>
+        // Set theme before page renders
+        if (localStorage.getItem('theme') === 'dark' || 
+            (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        // Configure Tailwind dark mode
+        tailwind.config = {
+            darkMode: 'class'
+        }
+    </script>
+    <style>
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fadeIn {
+            animation: fadeIn 1s ease-out;
+        }
+        .animate-pulse {
+    animation: pulse 0.3s ease-in-out;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+    </style>
+</head>
+
+<body class="bg-gray-100 dark:bg-gray-900 font-sans transition-colors duration-300">
+    <header class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-6 flex justify-between items-center">
+            <h1 class="text-2xl md:text-3xl font-bold">University Course Enrollment System</h1>
+            <div class="flex items-center space-x-4">
+                <nav class="space-x-4">
+                    <a href="{{ url_for('index') }}" class="hover:text-indigo-200 transition duration-300 ease-in-out">Home</a>
+                    <a href="{{ url_for('courses') }}" class="hover:text-indigo-200 transition duration-300 ease-in-out">Courses</a>
+                    <a href="{{ url_for('student_progress') }}" class="hover:text-indigo-200 transition duration-300 ease-in-out">Student Progress</a>
+                    <a href="{{ url_for('enroll') }}" class="hover:text-indigo-200 transition duration-300 ease-in-out">Enroll Student</a>
+                </nav>
+                <button id="theme-toggle" class="p-2 rounded-full hover:bg-indigo-500 transition duration-300 focus:outline-none focus:ring-2 focus:ring-indigo-400">
+                    <span id="theme-icon" class="w-6 h-6"></span>
+                </button>
+            </div>
+        </div>
+    </header>
+    <main class="container mx-auto px-4 py-8">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 animate-fadeIn text-gray-800 dark:text-gray-200">
+            <h2 class="text-xl md:text-2xl font-semibold mb-4">Welcome!</h2>
+            <p>This is a demo of my SQL Server-based University Course Enrollment System, featuring course listings, student progress tracking, enrollment with concurrency controls, and balance management.</p>
+        </div>
+    </main>
+    <script src="{{ url_for('static', filename='theme-toggle.js') }}"></script>
+</body>
+</html>

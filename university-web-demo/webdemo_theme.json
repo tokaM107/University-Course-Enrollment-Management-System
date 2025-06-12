@@ -1,0 +1,97 @@
+{
+    "name": "WebDemoTheme",
+    "dataColors": [
+        "#3B82F6", 
+        "#6366F1", 
+        "#8B5CF6", 
+        "#EF4444", 
+        "#D1D5DB", 
+        "#FFFFFF"
+    ],
+    "background": "#1F2937",
+    "foreground": "#D1D5DB",
+    "visualStyles": {
+        "*": {
+            "title": {
+                "color": {
+                    "solid": {
+                        "color": "#D1D5DB"
+                    }
+                },
+                "fontSize": 12
+            },
+            "labels": {
+                "color": {
+                    "solid": {
+                        "color": "#D1D5DB"
+                    }
+                },
+                "fontSize": 10
+            },
+            "categoryLabels": {
+                "color": {
+                    "solid": {
+                        "color": "#D1D5DB"
+                    }
+                }
+            },
+            "dataPoint": {
+                "defaultColor": {
+                    "solid": {
+                        "color": "#8B5CF6"
+                    }
+                }
+            }
+        },
+        "slicer": {
+            "general": {
+                "outlineColor": {
+                    "solid": {
+                        "color": "#4B5563"
+                    }
+                },
+                "outlineWeight": 1
+            },
+            "header": {
+                "background": [
+                    {
+                        "color": {
+                            "solid": {
+                                "color": "#3B82F6"
+                            }
+                        }
+                    }
+                ],
+                "color": {
+                    "solid": {
+                        "color": "#FFFFFF"
+                    }
+                }
+            }
+        },
+        "button": {
+            "general": {
+                "outlineColor": {
+                    "solid": {
+                        "color": "#4B5563"
+                    }
+                }
+            },
+            "fill": {
+                "show": true,
+                "color": {
+                    "solid": {
+                        "color": "#8B5CF6"
+                    }
+                }
+            },
+            "text": {
+                "color": {
+                    "solid": {
+                        "color": "#FFFFFF"
+                    }
+                }
+            }
+        }
+    }
+}

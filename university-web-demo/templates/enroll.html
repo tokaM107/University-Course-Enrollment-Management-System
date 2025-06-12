@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enroll</title>
+    <script>
+        // Set theme before page renders
+        if (localStorage.getItem('theme') === 'dark' || 
+            (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        // Configure Tailwind dark mode
+        tailwind.config = {
+            darkMode: 'class'
+        }
+    </script>
+    <style>
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fadeIn {
+            animation: fadeIn 1s ease-out;
+        }
+        .animate-pulse {
+    animation: pulse 0.3s ease-in-out;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+    </style>
+</head>
+
+<body class="bg-gray-100 dark:bg-gray-900 font-sans transition-colors duration-300">
+    <header class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-6 flex justify-between items-center">
+            <h1 class="text-2xl md:text-3xl font-bold">Enroll</h1>
+            <div class="flex items-center space-x-4">
+                <nav class="space-x-4">
+                    <a href="{{ url_for('index') }}" class="hover:text-indigo-200 transition duration-300 ease-in-out">Home</a>
+                    <a href="{{ url_for('courses') }}" class="hover:text-indigo-200 transition duration-300 ease-in-out">Courses</a>
+                    <a href="{{ url_for('student_progress') }}" class="hover:text-indigo-200 transition duration-300 ease-in-out">Student Progress</a>
+                    <a href="{{ url_for('enroll') }}" class="hover:text-indigo-200 transition duration-300 ease-in-out">Enroll</a>
+                </nav>
+                <button id="theme-toggle" class="p-2 rounded-full hover:bg-indigo-500 transition duration-300 focus:outline-none focus:ring-2 focus:ring-indigo-400">
+                    <span id="theme-icon" class="w-6 h-6"></span>
+                </button>
+            </div>
+        </div>
+    </header>
+    <main class="container mx-auto px-4 py-8">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 animate-fadeIn max-w-lg mx-auto text-gray-800 dark:text-gray-200">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <p class="{{ 'text-green-600 dark:text-green-400' if category == 'success' else 'text-red-600 dark:text-red-400' }} font-medium mb-4">{{ message }}</p>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            {% if not session.get('user_id') %}
+                <form method="POST" class="space-y-4" id="enroll-form">
+                    <div>
+                        <label for="user_id" class="block text-gray-700 dark:text-gray-300 font-medium mb-1">ID (Student or Admin):</label>
+                        <input type="text" id="user_id" name="user_id" required class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200">
+                    </div>
+                    <button type="submit" id="submit-btn" class="w-full bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 transition duration-300 ease-in-out flex items-center justify-center">
+                        <span id="button-text">Login</span>
+                        <svg id="loading-spinner" class="w-5 h-5 ml-2 hidden animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6l4 2"></path>
+                        </svg>
+                    </button>
+                </form>
+                <a href="{{ url_for('index') }}" class="mt-4 inline-block text-indigo-600 hover:text-indigo-800 transition duration-300">Back to Home</a>
+            {% else %}
+                {% if is_admin %}
+                    <h2 class="text-xl font-bold mb-4">Admin Dashboard</h2>
+                    <form method="POST" class="space-y-4" id="enroll-form">
+                        <div>
+                            <label for="first_name" class="block text-gray-700 dark:text-gray-300 font-medium mb-1">First Name:</label>
+                            <input type="text" id="first_name" name="first_name" required class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200">
+                        </div>
+                        <div>
+                            <label for="last_name" class="block text-gray-700 dark:text-gray-300 font-medium mb-1">Last Name:</label>
+                            <input type="text" id="last_name" name="last_name" required class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200">
+                        </div>
+                        <div>
+                            <label for="initial_balance" class="block text-gray-700 dark:text-gray-300 font-medium mb-1">Initial Balance:</label>
+                            <input type="number" id="initial_balance" name="initial_balance" value="1000.00" required step="0.01" class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200">
+                        </div>
+                        <div>
+                            <label for="offering_id" class="block text-gray-700 dark:text-gray-300 font-medium mb-1">Course Offering:</label>
+                            <select id="offering_id" name="offering_id" required class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200">
+                                <option value="" disabled selected>Select a course offering</option>
+                                {% for offering in offerings %}
+                                <option value="{{ offering.OfferingID }}" {% if offering.SeatsAvailable <= 0 %}disabled{% endif %}>
+                                    Offering {{ offering.OfferingID }} (Course {{ offering.CourseID }}) - Price: {{ offering.Price }} (Seats: {{ offering.SeatsAvailable }})
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <p class="text-sm text-gray-600 dark:text-gray-400"><strong>Note:</strong> Enrollment requires sufficient initial balance to cover course fees.</p>
+                        <button type="submit" id="submit-btn" class="w-full bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 transition duration-300 ease-in-out flex items-center justify-center">
+                            <span id="button-text">Enroll Student</span>
+                            <svg id="loading-spinner" class="w-5 h-5 ml-2 hidden animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6l4 2"></path>
+                            </svg>
+                        </button>
+                    </form>
+                {% else %}
+                    <h2 class="text-xl font-bold mb-4">Student Dashboard</h2>
+                    <p class="mb-4">Current Balance: {{ balance }}</p>
+                    <h3 class="text-lg font-bold mb-2">Enrolled Courses</h3>
+                    {% if enrollments %}
+                        <ul class="list-disc pl-5 mb-4">
+                            {% for enrollment in enrollments %}
+                                <li>Enrollment ID: {{ enrollment.EnrollmentID }}, Course ID: {{ enrollment.CourseID }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p>No courses enrolled.</p>
+                    {% endif %}
+                    <form method="POST" class="space-y-4" id="enroll-form">
+                        <div>
+                            <label for="offering_id" class="block text-gray-700 dark:text-gray-300 font-medium mb-1">Enroll in Course:</label>
+                            <select id="offering_id" name="offering_id" required class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200">
+                                <option value="" disabled selected>Select a course offering</option>
+                                {% for offering in offerings %}
+                                <option value="{{ offering.OfferingID }}" {% if offering.SeatsAvailable <= 0 %}disabled{% endif %}>
+                                    Offering {{ offering.OfferingID }} (Course {{ offering.CourseID }}) - Price: {{ offering.Price }} (Seats: {{ offering.SeatsAvailable }})
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <p class="text-sm text-gray-600 dark:text-gray-400"><strong>Note:</strong> Enrollment requires sufficient balance to cover course fees.</p>
+                        <button type="submit" id="submit-btn" class="w-full bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 transition duration-300 ease-in-out flex items-center justify-center">
+                            <span id="button-text">Enroll in Course</span>
+                            <svg id="loading-spinner" class="w-5 h-5 ml-2 hidden animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6l4 2"></path>
+                            </svg>
+                        </button>
+                    </form>
+                {% endif %}
+                <a href="{{ url_for('logout') }}" class="mt-4 inline-block bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700 transition duration-300">Log Out</a>
+                <a href="{{ url_for('index') }}" class="mt-4 inline-block text-indigo-600 hover:text-indigo-800 transition duration-300">Back to Home</a>
+            {% endif %}
+        </div>
+    </main>
+    <script src="{{ url_for('static', filename='theme-toggle.js') }}"></script>
+    <script src="{{ url_for('static', filename='enroll-form.js') }}"></script>
+</body>
+</html>

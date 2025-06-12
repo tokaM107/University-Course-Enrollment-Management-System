@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Balance</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fadeIn {
+            animation: fadeIn 1s ease-out;
+        }
+        tr:hover {
+            transform: scale(1.01);
+            transition: transform 0.2s ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 font-sans transition-colors duration-300">
+    <header class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-6 flex justify-between items-center">
+            <h1 class="text-2xl md:text-3xl font-bold">Student Balance</h1>
+            <div class="flex items-center space-x-4">
+                <nav class="space-x-4">
+                    <a href="{{ url_for('index') }}" class="hover:text-indigo-200 transition duration-300 ease-in-out">Home</a>
+                    <a href="{{ url_for('courses') }}" class="hover:text-indigo-200 transition duration-300 ease-in-out">Courses</a>
+                    <a href="{{ url_for('student_progress') }}" class="hover:text-indigo-200 transition duration-300 ease-in-out">Student Progress</a>
+                    <a href="{{ url_for('enroll') }}" class="hover:text-indigo-200 transition duration-300 ease-in-out">Enroll Student</a>
+                </nav>
+                <button id="theme-toggle" class="p-2 rounded-full hover:bg-indigo-500 transition duration-300">
+                    <svg id="theme-icon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12.79A9 9 0 1111.21 3a7 7 0 009.79 9.79z"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </header>
+    <main class="container mx-auto px-4 py-8">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 animate-fadeIn text-gray-800 dark:text-gray-200">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <p class="{{ 'text-green-600 dark:text-green-400' if category == 'success' else 'text-red-600 dark:text-red-400' }} font-medium mb-4">{{ message }}</p>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            <h2 class="text-xl md:text-2xl font-semibold mb-4">Balance for {{ student.FirstName }} {{ student.LastName }} (ID: {{ student_id }})</h2>
+            <p class="text-lg mb-4">Current Balance: <span class="font-bold">${{ student.Balance|default('0.00', true) }}</span></p>
+            <h3 class="text-lg font-semibold mb-2">Enrollment History</h3>
+            <div class="overflow-x-auto">
+                <table class="w-full border-collapse">
+                    <thead>
+                        <tr class="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200">
+                            <th class="py-3 px-4 text-left">Enrollment ID</th>
+                            <th class="py-3 px-4 text-left">Offering ID</th>
+                            <th class="py-3 px-4 text-left">Status</th>
+                            <th class="py-3 px-4 text-left">Grade</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for enrollment in enrollments %}
+                        <tr class="border-b hover:bg-gray-50 dark:hover:bg-gray-700">
+                            <td class="py-3 px-4">{{ enrollment.EnrollmentID }}</td>
+                            <td class="py-3 px-4">{{ enrollment.OfferingID }}</td>
+                            <td class="py-3 px-4">{{ enrollment.EnrollmentStatus }}</td>
+                            <td class="py-3 px-4">{{ enrollment.Grade|default('N/A', true) }}</td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="4" class="py-3 px-4 text-center text-gray-500 dark:text-gray-400">No enrollments found</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+    <script src="{{ url_for('static', filename='theme-toggle.js') }}"></script>
+</body>
+</html>
